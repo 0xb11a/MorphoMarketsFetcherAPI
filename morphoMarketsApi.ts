@@ -38,7 +38,7 @@ export interface MarketOutputForCalculator {
 function buildMarketParams(market: FetchedMorphoMarket) {
     return {
         loanToken: market.loanAsset.address,
-        collateralToken: market.collateralAsset.address,
+        collateralToken: market.collateralAsset?.address || "0x0000000000000000000000000000000000000000",
         oracle: market.oracleAddress,
         irm: market.irmAddress,
         lltv: market.lltv.toString(),
@@ -83,7 +83,7 @@ async function getBorrowRateFromContract(market: FetchedMorphoMarket): Promise<s
 async function transformMarketData(
     market: FetchedMorphoMarket
 ): Promise<MarketOutputForCalculator> {
-    const { loanAsset, state, uniqueKey } = market;
+    const { loanAsset, collateralAsset, state, uniqueKey } = market;
     const network = loanAsset.chain?.network || 'Unknown';
 
     // Get reward data if available
@@ -97,9 +97,14 @@ async function transformMarketData(
     const supplyAssetsInUsd = (Number(state.supplyAssets) / Math.pow(10, loanAsset.decimals)) * loanAssetPrice;
     const borrowAssetsInUsd = (Number(state.borrowAssets) / Math.pow(10, loanAsset.decimals)) * loanAssetPrice;
 
+    // Handle null collateral asset case
+    const marketName = collateralAsset 
+        ? `${collateralAsset.symbol}/${loanAsset.symbol} Market`
+        : `${loanAsset.symbol} Market`;
+
     return {
         id: uniqueKey,
-        name: `${loanAsset.symbol} Reserve`,
+        name: marketName,
         network: network,
         protocol: "Morpho",
         source: `Morpho ${network}`,

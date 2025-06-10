@@ -19,7 +19,8 @@ export interface MarketCollateralAsset {
   address: string;
   decimals: number;
   symbol: string;
-  priceUsd: string; 
+  priceUsd: string;
+  chain: MarketChainInfo;
 }
 
 export interface RewardAssetInfo {
@@ -46,9 +47,7 @@ export interface MarketRewardsInfo {
 export interface FetchedMorphoMarket {
     loanAsset: MarketLoanAsset;
     uniqueKey: string;
-    collateralAsset: {
-        address: string;
-    };
+    collateralAsset: MarketCollateralAsset;
     oracleAddress: string;
     irmAddress: string;
     lltv: string;
@@ -96,6 +95,12 @@ query Query($where: MarketFilters = { loanAssetAddress_in: "0xA0b86991c6218b36c1
       }
       collateralAsset {
         address
+        decimals
+        symbol
+        priceUsd
+        chain {
+          network
+        }
       }
       irmAddress
       lltv
