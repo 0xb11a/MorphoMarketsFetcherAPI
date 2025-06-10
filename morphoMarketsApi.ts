@@ -24,8 +24,8 @@ export interface MarketOutputForCalculator {
     protocol: string;
     source: string;
     token_price: string | number;
-    total_supplied: string;
-    total_borrowed: string;
+    total_supplied: string | number;
+    total_borrowed: string | number;
     fee_percentage: number;
     optimal_usage_ratio: number;
     reserve_factor: number;
@@ -92,15 +92,20 @@ async function transformMarketData(
     // Get current borrow rate from on-chain contract
     const rate_per_second = await getBorrowRateFromContract(market) ?? "0";
 
+    // Convert raw values to USD
+    const loanAssetPrice = Number(loanAsset.priceUsd);
+    const supplyAssetsInUsd = (Number(state.supplyAssets) / Math.pow(10, loanAsset.decimals)) * loanAssetPrice;
+    const borrowAssetsInUsd = (Number(state.borrowAssets) / Math.pow(10, loanAsset.decimals)) * loanAssetPrice;
+
     return {
         id: uniqueKey,
         name: `${loanAsset.symbol} Reserve`,
         network: network,
         protocol: "Morpho",
         source: `Morpho ${network}`,
-        token_price: Number(loanAsset.priceUsd),
-        total_supplied: state.supplyAssets,
-        total_borrowed: state.borrowAssets,
+        token_price: loanAssetPrice,
+        total_supplied: supplyAssetsInUsd,
+        total_borrowed: borrowAssetsInUsd,
         fee_percentage: state.fee,
         optimal_usage_ratio: 0.9,
         reserve_factor: 0,
